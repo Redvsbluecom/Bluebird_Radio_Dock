@@ -1,0 +1,104 @@
+"""Bluebird RadioDock — portable LuaDock and ImageDock in one window."""
+import sys
+from pathlib import Path
+from PySide6.QtCore import Qt
+from PySide6.QtGui import QIcon, QPixmap
+from PySide6.QtWidgets import (QApplication,QMainWindow,QWidget,QHBoxLayout,QVBoxLayout,
+                              QLabel,QPushButton,QStackedWidget,QMessageBox)
+from Bluebird_ImageDock import Dock
+from luadock_ui import LuaPanel
+import luadock_engine as engine
+
+STYLE='''
+QMainWindow, QWidget { background: #11151a; color: #edf3f8; font-family: "Segoe UI"; font-size: 13px; }
+QWidget#sidebar { background: #1b2128; border-right: 1px solid #35414d; }
+QLabel { background: transparent; }
+QLabel#brand { font-size: 24px; font-weight: 700; color: #78bff1; }
+QLabel#title { font-size: 27px; font-weight: 700; color: #78bff1; }
+QLabel#detailName { font-size: 20px; font-weight: 700; }
+QLabel#subtitle { color: #9aa9b7; padding-bottom: 9px; }
+QPushButton { background: #222a33; border: 1px solid #35414d; border-radius: 10px; padding: 9px 12px; }
+QPushButton:hover { background: #303c49; }
+QPushButton:checked { background: #193a56; color: #78bff1; border-color: #2684d9; }
+QPushButton#primary { background: #2684d9; font-weight: 700; }
+QPushButton#primary:disabled { background: #1b2128; color: #647688; }
+QPushButton:disabled { color: #647688; background: #1b2128; }
+QLineEdit, QComboBox, QListWidget, QTextEdit { background: #1b2128; border: 1px solid #35414d; border-radius: 11px; padding: 8px; }
+QListWidget::item { padding: 13px; border-bottom: 1px solid #35414d; }
+QListWidget::item:selected { background: #183754; color: #cde9ff; }
+QLabel#preview { background: #222a33; border: 1px solid #35414d; border-radius: 14px; }
+QWidget#emptyCard { background: #1b2128; border: 1px solid #35414d; border-radius: 14px; }
+QProgressBar { border: 1px solid #35414d; text-align: center; }
+QProgressBar::chunk { background: #2e9b61; }
+QSplitter::handle { background: #35414d; width: 2px; }
+'''
+
+
+class RadioDock(QMainWindow):
+    def __init__(self,offline=False):
+        super().__init__()
+        self.setWindowTitle('Bluebird RadioDock • Lua tools + model images')
+        self.resize(1400,850); self.setMinimumSize(1200,760)
+        self.setWindowIcon(QIcon(str(engine.asset_path('LuaDock.ico'))))
+        root=QWidget(); self.setCentralWidget(root)
+        layout=QHBoxLayout(root); layout.setContentsMargins(0,0,0,0); layout.setSpacing(0)
+        sidebar=QWidget(); sidebar.setObjectName('sidebar'); sidebar.setFixedWidth(200)
+        side=QVBoxLayout(sidebar); side.setContentsMargins(18,22,18,18); side.setSpacing(12)
+        brand=QLabel(); brand.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        logo_path=engine.asset_path('Kentucky_Bluebird.png')
+        logo=QPixmap(str(logo_path))
+        if not logo.isNull():
+            brand.setPixmap(logo.scaled(164,164,Qt.AspectRatioMode.KeepAspectRatio,Qt.TransformationMode.SmoothTransformation))
+        else:
+            brand.setText('KENTUCKY\nBLUEBIRD'); brand.setObjectName('brand')
+        side.addWidget(brand)
+        subtitle=QLabel('RadioDock\nYour EdgeTX workbench'); subtitle.setObjectName('subtitle'); side.addWidget(subtitle)
+        self.lua_button=QPushButton('Lua tools && add-ons'); self.lua_button.setCheckable(True); side.addWidget(self.lua_button)
+        self.image_button=QPushButton('Model images'); self.image_button.setCheckable(True); side.addWidget(self.image_button)
+        hint=QLabel('Scripts • Widgets\nThemes • LED gimbals\nModel icons'); hint.setObjectName('subtitle'); side.addWidget(hint)
+        side.addStretch()
+        mascot=QLabel(); mascot.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        artwork=QIcon(str(engine.asset_path('LuaDock.ico'))).pixmap(148,148)
+        if not artwork.isNull():
+            mascot.setPixmap(artwork.scaled(148,148,Qt.AspectRatioMode.KeepAspectRatio,Qt.TransformationMode.SmoothTransformation))
+        side.addWidget(mascot)
+        footer=QLabel('Portable edition 1.0\nV16 / TX16S ready'); footer.setObjectName('subtitle'); side.addWidget(footer)
+        layout.addWidget(sidebar)
+        self.stack=QStackedWidget(); layout.addWidget(self.stack,1)
+        self.lua=LuaPanel(offline=offline); self.stack.addWidget(self.lua)
+        self.images=Dock(offline=offline)
+        self.images.setWindowFlags(Qt.WindowType.Widget)
+        self.images.setStyleSheet('')
+        self.images.color_button.setStyleSheet('')
+        self.images.color_button.setObjectName('primary')
+        title=self.images.findChild(QLabel,'title')
+        if title: title.setText('Model images')
+        self.stack.addWidget(self.images)
+        self.lua_button.clicked.connect(lambda:self.switch(0))
+        self.image_button.clicked.connect(lambda:self.switch(1))
+        self.setStyleSheet(STYLE); self.switch(0)
+
+    def switch(self,index):
+        self.stack.setCurrentIndex(index)
+        self.lua_button.setChecked(index==0); self.image_button.setChecked(index==1)
+
+    def closeEvent(self,event):
+        image_save=bool(self.images.pending or (self.images.active and self.images.active['task']['mode']!='preview'))
+        if self.lua.download_busy or image_save:
+            QMessageBox.information(self,'Download running','Finish or cancel downloads before closing RadioDock.')
+            event.ignore(); return
+        self.lua.shutdown()
+        self.images.end_search()
+        self.images.close()
+        super().closeEvent(event)
+
+
+def main():
+    app=QApplication(sys.argv)
+    app.setApplicationName('Bluebird RadioDock')
+    window=RadioDock(offline='--offline' in sys.argv)
+    window.show()
+    return app.exec()
+
+
+if __name__=='__main__': sys.exit(main())
