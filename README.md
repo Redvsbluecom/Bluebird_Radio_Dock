@@ -1,53 +1,122 @@
 # Bluebird RadioDock
 
-**Bluebird RadioDock** is a Windows desktop utility built to make managing EdgeTX radios easier.
+### A portable Windows workbench for EdgeTX radios
 
-It combines several of the tools I use for maintaining, customizing, and working with EdgeTX radios into one simple application.
+Bluebird RadioDock brings Lua add-on downloads, model images, radio migration, and custom theme creation into one application.
 
-RadioDock is designed especially around radios such as the **RadioMaster TX16S family, HelloRadioSky V16, MK2/MK3-style EdgeTX radios**, and other compatible EdgeTX transmitters.
+Built by **Kentucky Bluebird** for the RC community.
 
 ## Features
 
-### LuaDock
+### 🎨 ThemeDock — New in v1.3.0
 
-Find and manage useful EdgeTX Lua scripts without having to manually hunt through websites and repositories.
+Create custom EdgeTX color themes with your own photos and colors.
 
-LuaDock helps locate scripts for things such as:
+- Start with the original EdgeTX color palette.
+- Adjust background crop, zoom, brightness, and image fit.
+- Preview sample home screens, menus, and controls.
+- Save editable projects with the original photo included.
+- Export a theme ZIP ready to copy onto your radio’s SD card.
+- Include all five supported color-screen resolutions in one package.
+- Preview and export monochrome artwork.
 
-- Receivers
-- ESCs
-- Flight controllers
-- Telemetry
-- Model utilities
-- Radio utilities
-- LED/gimbal configuration
-- EdgeTX tools
+### 🧩 Lua Tools & Add-ons
 
-Scripts can be downloaded and placed directly into the appropriate radio storage location.
+Browse and download Lua scripts, widgets, themes, and other radio add-ons.
 
-### ImageDock
+- View available previews.
+- Select multiple downloads.
+- Choose your destination folder.
+- Check for duplicate downloads.
+- Review package installation guidance.
 
-Search for model images and quickly prepare them for use on an EdgeTX radio.
+### 🖼️ Model Images
 
-ImageDock makes it easier to:
+Find and download model images with previews and radio-aware formatting.
 
-- Find aircraft and model images
-- Preview search results
-- Download selected images
-- Choose the destination folder
-- Save images directly to an SD card or radio storage location
+- Color output: **192 × 114 PNG**.
+- Supported X9D-family monochrome output: **64 × 32, 4-bit indexed BMP**.
+- Human-readable filenames limited to **9 characters**.
+- Choose where images are saved, including your radio’s SD card.
 
-This is useful when building or cleaning up large EdgeTX model libraries.
+### 🔄 MK2 ↔ MK3 Migration
 
-### EdgeTX Radio Utility Workflow
+Convert supported model module settings between MK2 and MK3 configurations using the integrated migration tool.
 
-RadioDock is intended to reduce the amount of manual file management normally required when setting up an EdgeTX radio.
+### ⚠️ Lua Health — Currently Broken
 
-Instead of repeatedly switching between browsers, download folders, SD cards, and file-management windows, RadioDock puts the most common tasks into one interface.
+The **Lua Health** tab is included in this build, but it is **not working correctly**. Do not rely on its script detection, update checks, or update actions.
 
-## Supported Radios
+It remains visible in the application, but should be treated as an unfinished feature.
 
-RadioDock is primarily developed and tested around EdgeTX radios, including hardware such as:
+## Getting Started
 
-- RadioMaster TX16S
-- TX
+Download the package from this repository’s **Releases** page.
+
+### Standalone EXE
+
+If the release includes a standalone executable, download and run it. End users do not need Python.
+
+### Windows Build Kit
+
+1. Download and extract the build-kit ZIP.
+2. Install **Python 3.10 or newer**.
+3. Run `BUILD_FINAL_STANDALONE.bat`.
+4. Find the finished executable in the `release` folder.
+
+The first build requires internet access to install dependencies.
+
+## Creating a Theme
+
+1. Open **ThemeDock**.
+2. Enter your theme name and author.
+3. Add a photo and choose a display resolution.
+4. Adjust the photo and palette.
+5. Check the previews for each display size you want to support.
+6. Export your theme ZIP.
+7. Copy its **THEMES** folder to your radio’s SD-card root.
+8. Select the new theme in EdgeTX.
+
+Save a `.btheme` project if you want to edit the design again later.
+
+## Theme Display Support
+
+| Display type | Resolution |
+|---|---|
+| Color, landscape | 320 × 240 |
+| Color, portrait | 320 × 480 |
+| Color, landscape | 480 × 272 |
+| Color, landscape | 480 × 320 |
+| Color, landscape | 800 × 480 |
+| Monochrome artwork | 128 × 64 |
+| Monochrome artwork | 212 × 64 |
+
+Color themes use the modern **EdgeTX 2.6+** theme format. Optional quick-menu color overrides require **EdgeTX 2.12+**.
+
+Monochrome radios do not support selectable color themes. ThemeDock exports monochrome source artwork; startup-image installation depends on the radio and firmware.
+
+## Current Release & Known Issues
+
+**v1.3.0 — ThemeDock Preview Release**
+
+- **Lua Health is included but currently broken.**
+- ThemeDock previews use sample values and approximate screen layouts. Actual screens depend on the radio, firmware, and configured widgets.
+- Windows standalone build verification and physical-radio testing remain pending.
+
+## Feedback & Issues
+
+Found a problem or have an idea? Open an issue and include:
+
+- Radio model and EdgeTX version.
+- RadioDock version.
+- What you were trying to do.
+- Any error message or screenshot.
+- `BUILD_LOG.txt` if the Windows build failed.
+
+## Credits
+
+Created by **Kentucky Bluebird**.
+
+Thanks to the EdgeTX team and the developers behind the scripts, widgets, themes, and image resources used by the RC community.
+
+Bluebird RadioDock is an independent community project and is not affiliated with or endorsed by EdgeTX or RadioMaster. Third-party downloads retain their original licenses.
