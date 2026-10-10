@@ -1,12 +1,15 @@
 """Bluebird RadioDock — portable LuaDock and ImageDock in one window."""
 import sys
+import os
 from pathlib import Path
-from PySide6.QtCore import Qt
-from PySide6.QtGui import QIcon, QPixmap
+from PySide6.QtCore import Qt, QElapsedTimer, QTimer
+from PySide6.QtGui import QIcon, QPixmap, QPainter, QColor, QFont
 from PySide6.QtWidgets import (QApplication,QMainWindow,QWidget,QHBoxLayout,QVBoxLayout,
-                              QLabel,QPushButton,QStackedWidget,QMessageBox)
+                              QLabel,QPushButton,QStackedWidget,QMessageBox,QSplashScreen,QProgressBar)
 from Bluebird_ImageDock import Dock
 from luadock_ui import LuaPanel
+from radio_migration_ui import MigrationPanel
+from themedock_ui import ThemePanel
 import luadock_engine as engine
 
 STYLE='''
@@ -23,11 +26,15 @@ QPushButton:checked { background: #193a56; color: #78bff1; border-color: #2684d9
 QPushButton#primary { background: #2684d9; font-weight: 700; }
 QPushButton#primary:disabled { background: #1b2128; color: #647688; }
 QPushButton:disabled { color: #647688; background: #1b2128; }
-QLineEdit, QComboBox, QListWidget, QTextEdit { background: #1b2128; border: 1px solid #35414d; border-radius: 11px; padding: 8px; }
+QLineEdit, QComboBox, QListWidget, QTextEdit, QTableWidget { background: #1b2128; border: 1px solid #35414d; border-radius: 11px; padding: 8px; }
 QListWidget::item { padding: 13px; border-bottom: 1px solid #35414d; }
 QListWidget::item:selected { background: #183754; color: #cde9ff; }
 QLabel#preview { background: #222a33; border: 1px solid #35414d; border-radius: 14px; }
-QWidget#emptyCard { background: #1b2128; border: 1px solid #35414d; border-radius: 14px; }
+QWidget#emptyCard, QFrame#migrationCard { background: #1b2128; border: 1px solid #35414d; border-radius: 14px; }
+QLabel#migrationState { background: #193a56; color: #bfe4ff; border: 1px solid #2684d9; border-radius: 9px; padding: 7px 12px; font-weight: 700; }
+QLabel#migrationState[state="validation-passed"] { background: #183d2b; color: #aee8ca; border-color: #2e9b61; }
+QLabel#migrationState[state="warning"] { background: #493719; color: #ffe0a3; border-color: #c58a28; }
+QLabel#migrationState[state="error"] { background: #4b2529; color: #ffd1d4; border-color: #bd4f54; }
 QProgressBar { border: 1px solid #35414d; text-align: center; }
 QProgressBar::chunk { background: #2e9b61; }
 QSplitter::handle { background: #35414d; width: 2px; }
@@ -35,9 +42,11 @@ QSplitter::handle { background: #35414d; width: 2px; }
 
 
 class RadioDock(QMainWindow):
-    def __init__(self,offline=False):
+    def __init__(self,offline=False, splash=None):
         super().__init__()
-        self.setWindowTitle('Bluebird RadioDock • Lua tools + model images')
+        self._splash = splash
+        self._splash_status('Preparing RadioDock…', 12)
+        self.setWindowTitle('Bluebird RadioDock • Add-ons + model images + radio migration + ThemeDock')
         self.resize(1400,850); self.setMinimumSize(1200,760)
         self.setWindowIcon(QIcon(str(engine.asset_path('LuaDock.ico'))))
         root=QWidget(); self.setCentralWidget(root)
@@ -53,19 +62,23 @@ class RadioDock(QMainWindow):
             brand.setText('KENTUCKY\nBLUEBIRD'); brand.setObjectName('brand')
         side.addWidget(brand)
         subtitle=QLabel('RadioDock\nYour EdgeTX workbench'); subtitle.setObjectName('subtitle'); side.addWidget(subtitle)
-        self.lua_button=QPushButton('Lua tools && add-ons'); self.lua_button.setCheckable(True); side.addWidget(self.lua_button)
+        self.lua_button=QPushButton('Add-ons'); self.lua_button.setCheckable(True); side.addWidget(self.lua_button)
         self.image_button=QPushButton('Model images'); self.image_button.setCheckable(True); side.addWidget(self.image_button)
-        hint=QLabel('Scripts • Widgets\nThemes • LED gimbals\nModel icons'); hint.setObjectName('subtitle'); side.addWidget(hint)
+        self.migration_button=QPushButton('MK2 ↔ MK3 migration'); self.migration_button.setCheckable(True); side.addWidget(self.migration_button)
+        self.theme_button=QPushButton('ThemeDock'); self.theme_button.setCheckable(True); side.addWidget(self.theme_button)
+        hint=QLabel('Scripts • Widgets\nThemes • LED gimbals\nSound packs • Model icons\nRadio migration'); hint.setObjectName('subtitle'); side.addWidget(hint)
         side.addStretch()
         mascot=QLabel(); mascot.setAlignment(Qt.AlignmentFlag.AlignCenter)
         artwork=QIcon(str(engine.asset_path('LuaDock.ico'))).pixmap(148,148)
         if not artwork.isNull():
             mascot.setPixmap(artwork.scaled(148,148,Qt.AspectRatioMode.KeepAspectRatio,Qt.TransformationMode.SmoothTransformation))
         side.addWidget(mascot)
-        footer=QLabel('Portable edition 1.0\nV16 / TX16S ready'); footer.setObjectName('subtitle'); side.addWidget(footer)
+        footer=QLabel('Portable edition 1.4.16\nEdgeTX display families'); footer.setObjectName('subtitle'); side.addWidget(footer)
         layout.addWidget(sidebar)
         self.stack=QStackedWidget(); layout.addWidget(self.stack,1)
+        self._splash_status('Loading Add-ons and sound packs…', 28)
         self.lua=LuaPanel(offline=offline); self.stack.addWidget(self.lua)
+        self._splash_status('Preparing ImageDock…', 46)
         self.images=Dock(offline=offline)
         self.images.setWindowFlags(Qt.WindowType.Widget)
         self.images.setStyleSheet('')
@@ -74,18 +87,30 @@ class RadioDock(QMainWindow):
         title=self.images.findChild(QLabel,'title')
         if title: title.setText('Model images')
         self.stack.addWidget(self.images)
+        self._splash_status('Loading radio migration tools…', 62)
+        self.migration=MigrationPanel(); self.stack.addWidget(self.migration)
+        self._splash_status('Preparing ThemeDock…', 78)
+        self.themes=ThemePanel(); self.stack.addWidget(self.themes)
+        self.theme_button.clicked.connect(lambda:self.switch(3))
         self.lua_button.clicked.connect(lambda:self.switch(0))
         self.image_button.clicked.connect(lambda:self.switch(1))
+        self.migration_button.clicked.connect(lambda:self.switch(2))
         self.setStyleSheet(STYLE); self.switch(0)
+        self._splash_status('RadioDock ready', 100)
+
+    def _splash_status(self, message, value):
+        splash = getattr(self, '_splash', None)
+        if splash is not None:
+            splash.set_status(message, value)
 
     def switch(self,index):
         self.stack.setCurrentIndex(index)
-        self.lua_button.setChecked(index==0); self.image_button.setChecked(index==1)
+        self.lua_button.setChecked(index==0); self.image_button.setChecked(index==1); self.migration_button.setChecked(index==2); self.theme_button.setChecked(index==3)
 
     def closeEvent(self,event):
         image_save=bool(self.images.pending or (self.images.active and self.images.active['task']['mode']!='preview'))
-        if self.lua.download_busy or image_save:
-            QMessageBox.information(self,'Download running','Finish or cancel downloads before closing RadioDock.')
+        if self.lua.download_busy or self.lua.install_busy or image_save or self.migration.busy:
+            QMessageBox.information(self,'Operation running','Finish the active download/install or migration before closing RadioDock.')
             event.ignore(); return
         self.lua.shutdown()
         self.images.end_search()
@@ -93,11 +118,100 @@ class RadioDock(QMainWindow):
         super().closeEvent(event)
 
 
+def apply_windows_dark_titlebar(window):
+    """Ask Windows DWM to match the native title bar to RadioDock's dark HMI."""
+    if os.name != 'nt':
+        return
+    try:
+        import ctypes
+        hwnd = int(window.winId())
+        dwm = ctypes.windll.dwmapi
+        enabled = ctypes.c_int(1)
+        # Windows 11 uses 20; older supported Windows 10 builds may use 19.
+        if dwm.DwmSetWindowAttribute(hwnd, 20, ctypes.byref(enabled), ctypes.sizeof(enabled)) != 0:
+            dwm.DwmSetWindowAttribute(hwnd, 19, ctypes.byref(enabled), ctypes.sizeof(enabled))
+
+        # On supported Windows 11 builds, explicitly match RadioDock's HMI colors.
+        caption = ctypes.c_int(0x001A1511)  # COLORREF for #11151a
+        text = ctypes.c_int(0x00F8F3ED)     # COLORREF for #edf3f8
+        dwm.DwmSetWindowAttribute(hwnd, 35, ctypes.byref(caption), ctypes.sizeof(caption))
+        dwm.DwmSetWindowAttribute(hwnd, 36, ctypes.byref(text), ctypes.sizeof(text))
+    except Exception:
+        # Unsupported DWM attributes should never stop RadioDock from opening.
+        pass
+
+
+class RadioDockSplash(QSplashScreen):
+    """Fast startup splash using artwork already bundled with RadioDock."""
+    def __init__(self):
+        canvas = QPixmap(680, 390)
+        canvas.fill(QColor('#11151a'))
+        painter = QPainter(canvas)
+        painter.setRenderHint(QPainter.RenderHint.Antialiasing, True)
+        logo = QPixmap(str(engine.asset_path('Kentucky_Bluebird.png')))
+        if not logo.isNull():
+            scaled = logo.scaled(245, 245, Qt.AspectRatioMode.KeepAspectRatio,
+                                 Qt.TransformationMode.SmoothTransformation)
+            painter.drawPixmap(28, 55, scaled)
+        painter.setPen(QColor('#78bff1'))
+        title_font = QFont('Segoe UI', 27)
+        title_font.setBold(True)
+        painter.setFont(title_font)
+        painter.drawText(292, 145, 'BLUEBIRD')
+        painter.drawText(292, 185, 'RADIODOCK')
+        painter.setPen(QColor('#edf3f8'))
+        sub_font = QFont('Segoe UI', 12)
+        painter.setFont(sub_font)
+        painter.drawText(294, 222, 'EdgeTX Workbench')
+        painter.setPen(QColor('#9aa9b7'))
+        version_font = QFont('Segoe UI', 10)
+        painter.setFont(version_font)
+        painter.drawText(294, 252, 'v1.4.16 • development')
+        painter.end()
+        super().__init__(canvas, Qt.WindowType.WindowStaysOnTopHint)
+        self.setWindowFlag(Qt.WindowType.FramelessWindowHint, True)
+        self.progress = QProgressBar(self)
+        self.progress.setGeometry(42, 334, 596, 15)
+        self.progress.setRange(0, 100)
+        self.progress.setTextVisible(False)
+        self.progress.setStyleSheet(
+            'QProgressBar{background:#1b2128;border:1px solid #35414d;border-radius:7px;}'
+            'QProgressBar::chunk{background:#2684d9;border-radius:6px;}')
+        self.set_status('Starting RadioDock…', 4)
+
+    def set_status(self, message, value):
+        self.progress.setValue(max(0, min(100, int(value))))
+        self.showMessage(message, Qt.AlignmentFlag.AlignBottom | Qt.AlignmentFlag.AlignHCenter,
+                         QColor('#c6d4df'))
+        app = QApplication.instance()
+        if app is not None:
+            app.processEvents()
+
+
+SPLASH_MINIMUM_MS = 4000
+
+
 def main():
     app=QApplication(sys.argv)
     app.setApplicationName('Bluebird RadioDock')
-    window=RadioDock(offline='--offline' in sys.argv)
+    splash_timer = QElapsedTimer()
+    splash_timer.start()
+    splash=RadioDockSplash()
+    splash.show()
+    app.processEvents()
+    splash.set_status('Consolidating portable app data…', 8)
+    portable_warnings = engine.ensure_portable_data_layout()
+    if portable_warnings:
+        for warning in portable_warnings:
+            print('RadioDock portable-data warning:', warning, file=sys.stderr)
+    window=RadioDock(offline='--offline' in sys.argv, splash=splash)
     window.show()
+    apply_windows_dark_titlebar(window)
+    remaining = max(0, SPLASH_MINIMUM_MS - splash_timer.elapsed())
+    if remaining:
+        QTimer.singleShot(remaining, lambda: splash.finish(window))
+    else:
+        splash.finish(window)
     return app.exec()
 
 
