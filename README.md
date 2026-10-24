@@ -1,262 +1,301 @@
-<img width="1254" height="170" alt="ThemeDock_preview" src="https://github.com/user-attachments/assets/e73dd1da-2ad8-4942-a750-373b135f573c" />
-<img width="1386" height="1326" alt="Kentucky_Bluebird" src="https://github.com/user-attachments/assets/c9fd3b46-600b-40fa-92e5-7465c55eb0ed" />
-[README.md](https://github.com/user-attachments/files/33288373/README.md)
 # Bluebird RadioDock
 
-<p align="center">
-  <img src="Kentucky_Bluebird.png" width="180" alt="Kentucky Bluebird">
-</p>
+![Kentucky Bluebird](Kentucky_Bluebird.png)
 
-<p align="center">
-  <strong>A portable Windows utility for managing common EdgeTX radio tasks.</strong>
-</p>
+**Bluebird RadioDock** is a portable Windows utility for managing, customizing, and maintaining **EdgeTX radios** without trying to replace EdgeTX Companion.
 
-<p align="center">
-  Model Images • Lua Add-ons • ThemeDock • Sound Packs • Model Migration
-</p>
+RadioDock brings model images, EdgeTX add-ons, themes, sounds, migration tools, and other useful radio-management features together in one application.
+
+Current release: **v1.4.36**
+
+[Releases](https://github.com/Redvsbluecom/Bluebird_Radio_Dock/releases)
 
 ---
 
-## About Bluebird RadioDock
+## What RadioDock Does
 
-Bluebird RadioDock is a Windows utility built to simplify some of the repetitive jobs involved with managing EdgeTX radios and SD cards.
+### ImageDock
 
-It is **not intended to replace EdgeTX Companion**.
+Search for aircraft model images and prepare them for your radio.
 
-Instead, RadioDock focuses on tasks that often require manually searching websites, resizing images, renaming files, navigating SD-card folders, downloading Lua packages, building themes, or converting model files.
+Supported online providers include:
 
-The operator remains in control of the radio and chooses the SD-card location manually.
+- **SkyRaccoon**
+- **AIR-RC**
 
----
+RadioDock handles radio-specific image conversion, naming, resizing, and saving.
 
-## Model Images
+ImageDock has been heavily hardened for real-world provider behavior, including:
 
-Search supported model-image providers directly from RadioDock and download aircraft images for your EdgeTX radio.
+- provider switching;
+- slow-loading pages;
+- first-search recovery;
+- empty-result handling;
+- failed-page recovery;
+- automatic reload attempts;
+- Windows proxy support;
+- diagnostic logging when something goes wrong.
 
-Features include:
+RadioDock can create:
 
-- Search supported model-image providers
-- Preview images before saving
-- Radio/display-aware image sizing
-- Automatic image conversion when required
-- EdgeTX-compatible filenames
-- 9-character model-image filename handling
-- Direct download to a selected radio folder
-- Preview reload support
-- Provider switching
-- Portable image workflow
+`Bluebird_RadioDock_Data/ImageDock_Diagnostic.log`
 
-RadioDock is designed to eliminate much of the manual work normally involved in finding, resizing, converting, renaming, and copying model images.
-
----
-
-## EdgeTX Add-ons & Lua Tools
-
-Browse EdgeTX Lua scripts, widgets, utilities, and add-ons from inside RadioDock.
-
-Features include:
-
-- Add-on browsing
-- Publisher screenshots
-- Screenshot galleries
-- Publisher website access
-- Manual package downloads
-- EdgeTX SD-root selection
-- Conservative automatic installation where supported
-- Package layout validation
-- Transactional file replacement
-- Rollback protection during supported installs
-
-RadioDock intentionally uses a **fail-closed** approach.
-
-If an add-on has an unclear folder structure, unsupported dependency, radio-specific variant, or ambiguous installation requirement, RadioDock will leave that package as a manual installation instead of guessing.
+when an ImageDock provider fails, making troubleshooting considerably easier.
 
 ---
 
-## Add-on Preview Galleries
+## EdgeTX Add-ons
 
-Publisher screenshots are shown directly inside the Add-ons tab.
+Browse the official EdgeTX Lua/add-on catalog directly inside RadioDock.
 
-Multi-image galleries include navigation controls and image counters such as:
+RadioDock also includes selected **RadioDock Reviewed** community projects that are not yet part of the official EdgeTX catalog.
 
-```text
-2 / 6
-```
+Examples include:
 
-Single-image previews do not display an unnecessary `1 / 1` counter.
+- AeroGrid
+- FPVDash
+- EdgeDeck
+- UltiDash
+- FlightDash
+- WingLabs EdgeTX Widgets
+- RBCT
+- Whoopsie Daisy
+- SoarF5J
+- Rotorflight RFSuite
 
-The preview system also adjusts correctly when RadioDock is maximized or running fullscreen.
+When a reviewed project later becomes official, RadioDock automatically prefers the official EdgeTX listing instead of showing duplicates.
+
+### Safe Installation
+
+RadioDock does **not** blindly install arbitrary GitHub repositories.
+
+Automatic installation is offered only when RadioDock can verify the package structure and destination with enough confidence to safely modify the radio SD card.
+
+Unknown or ambiguous packages remain manual.
+
+---
+
+## AeroGrid Support
+
+RadioDock includes dedicated support for installing and updating AeroGrid.
+
+It can:
+
+- download the current stable release;
+- install the widget into `/WIDGETS/AeroGrid/`;
+- replace the existing widget during an update;
+- preserve user layouts and configuration stored under `/AEROGRID/`;
+- protect existing files with transactional backup and rollback.
 
 ---
 
 ## ThemeDock
 
-Create custom themes for EdgeTX color-screen radios using your own images and color selections.
+ThemeDock lets you browse, preview, build, and install EdgeTX color themes.
 
-<p align="center">
-  <img src="ThemeDock_preview.png" width="850" alt="ThemeDock Preview">
-</p>
+![ThemeDock Preview](ThemeDock_preview.png)
 
-ThemeDock includes:
+Features include:
 
-- Custom background photos
-- Crop and positioning controls
-- Zoom controls
-- Brightness adjustment
-- Theme color editing
-- Radio/display previews
-- Editable `.btheme` project files
-- EdgeTX theme export
-- Support for multiple color-screen layouts
+- official EdgeTX theme browsing;
+- theme previews;
+- local-photo theme creation;
+- background crop and positioning;
+- brightness adjustment;
+- palette editing;
+- radio-display previews;
+- reusable `.btheme` projects;
+- theme ZIP export;
+- direct installation to an EdgeTX SD card.
 
-ThemeDock is intended to make creating personalized EdgeTX themes easier without manually assembling all of the theme assets yourself.
+### Startup Media Protection
+
+Normal theme installation will not unexpectedly replace:
+
+- `/IMAGES/splash.png`
+- startup `hello.wav`
+- startup `tada.wav`
+
+If a package contains startup media, RadioDock requires an explicit choice before replacing it.
 
 ---
 
-## Sound Packs
+## Sounds & Voice Packs
 
-RadioDock includes tools for working with supported EdgeTX sound packs.
+RadioDock provides access to EdgeTX-compatible sound and voice resources including:
 
-The operator selects the radio SD-card root, allowing RadioDock to remain portable and avoiding assumptions about Windows drive letters.
+- GLaDOS Voice Pack
+- Joshua Bardwell Voice Pack
+- Amber legacy voice resources
+- EMAX Satomi Taranis Voice Pack
+- Vox-Pack Custom Voice Creator
+
+Current EdgeTX voice packs can be installed where RadioDock can safely verify their layout.
+
+Legacy or external packages remain available for manual review.
 
 ---
 
-## Model Migration
+## Radio-Aware Model Images
 
-RadioDock includes tools for converting supported EdgeTX model files between radio generations.
+RadioDock understands that different EdgeTX radios require different image formats and resolutions.
 
-This functionality originally grew from migration work involving radios such as:
+Supported workflows include:
 
-- RadioMaster TX16S MK2
-- RadioMaster TX16S MK3
-- HelloRadioSky V16
+- color-radio PNG images;
+- monochrome radio BMP images;
+- automatic resizing;
+- radio-aware output;
+- human-readable filename handling;
+- safe conversion from downloaded source images.
 
-The migration tools are focused specifically on compatible model-file changes and are not intended to replace full radio-management software.
+The operator always chooses the radio and destination.
+
+RadioDock does **not** automatically guess which removable drive is your transmitter.
+
+---
+
+## Model Migration Tools
+
+RadioDock includes utilities for moving or converting model resources between supported RadioMaster/EdgeTX radio generations.
+
+These tools are intended to simplify migration while keeping the operator in control of the source and destination.
 
 ---
 
 ## Portable by Design
 
-Bluebird RadioDock is designed to remain portable.
+RadioDock does not require a traditional Windows installation.
 
-Where practical, application-owned files and settings stay beside the application instead of being scattered throughout Windows.
+The standalone EXE can be placed wherever you want.
 
-The finished standalone EXE does **not** require Python to be installed on the end user's computer.
+Persistent RadioDock data is stored beside the application in:
+
+`Bluebird_RadioDock_Data`
+
+This keeps settings, update information, and other RadioDock data portable with the program.
+
+---
+
+## Built-In Update Notifications
+
+Starting with **v1.4.36**, RadioDock can check the official GitHub Releases page for a newer stable version.
+
+Features include:
+
+- background update checks;
+- manual **Check for updates**;
+- visible update notification when a newer version is available;
+- release-note preview;
+- **Remind me later**;
+- **Dismiss this version**.
+
+RadioDock does **not** silently install updates or replace its own executable.
+
+The user remains in control of every RadioDock update.
+
+---
+
+## Windows Networking
+
+RadioDock uses the Windows certificate store for normal HTTPS downloads.
+
+This improves compatibility with:
+
+- GitHub;
+- official EdgeTX catalogs;
+- themes;
+- add-on packages;
+- release information;
+- publisher resources.
+
+Certificate verification remains enabled.
+
+RadioDock does not silently bypass invalid certificates.
+
+---
+
+## Supported Environment
+
+RadioDock is designed primarily for:
+
+- **Windows 10 / Windows 11**
+- **EdgeTX radios**
+- RadioMaster color and monochrome radios
+- EdgeTX-compatible radios from other manufacturers where the required SD-card structure and formats are supported
+
+Development and testing are currently centered around modern EdgeTX releases and RadioMaster hardware, including TX16S-class radios.
 
 ---
 
 ## Download
 
-The easiest way to get RadioDock is through the GitHub **Releases** page.
+Get the newest standalone release here:
 
-Download the latest release package and follow the instructions included with that release.
+**https://github.com/Redvsbluecom/Bluebird_Radio_Dock/releases**
 
----
+For normal use, download the latest standalone Windows executable from the Releases page.
 
-## Building the Standalone EXE
-
-The source/build kit includes:
-
-```text
-BUILD_FINAL_STANDALONE.bat
-```
-
-To build RadioDock:
-
-1. Download the latest build kit.
-2. Extract the ZIP to a normal Windows folder.
-3. Run:
-
-```text
-BUILD_FINAL_STANDALONE.bat
-```
-
-4. The builder creates a temporary private Python environment.
-5. Required dependencies are installed automatically.
-6. Regression tests are run before the application is packaged.
-7. If all required tests pass, the standalone EXE is created in:
-
-```text
-release
-```
-
-The first build requires an internet connection.
-
-End users only need the finished EXE.
+Developers can also download the source package included with each release.
 
 ---
 
-## Using an EdgeTX SD Card
+## Building From Source
 
-RadioDock does not assume a specific Windows drive letter.
+The source package includes the Windows build system.
 
-Connect the radio or SD card to your computer and choose the correct **EdgeTX SD root** when requested.
+Requirements:
 
-A typical EdgeTX SD card may contain folders such as:
+- Python 3.10 or newer
+- Windows 10 or 11
+- Internet access during the initial build
 
-```text
-MODELS
-RADIO
-SCRIPTS
-WIDGETS
-THEMES
-SOUNDS
-IMAGES
-```
+The current development environment uses **Python 3.13 64-bit**.
 
-The exact folder layout depends on the radio, EdgeTX version, and installed packages.
+Extract the source package and run:
+
+`BUILD_FINAL_STANDALONE.bat`
+
+The build process creates a private temporary Python environment, installs the required dependencies, runs RadioDock's regression checks, and produces the standalone Windows executable.
 
 ---
 
-## Automatic Lua Installation
+## Safety First
 
-Automatic Lua/add-on installation is intentionally conservative.
+RadioDock is intentionally conservative when modifying an EdgeTX SD card.
 
-RadioDock only offers automatic installation when the package layout and destination can be determined with enough confidence.
+Its general rule is:
 
-Automatic installation may be unavailable for packages with:
+**If RadioDock cannot confidently determine that an automatic operation is safe, it does not perform it automatically.**
 
-- Unknown folder structures
-- Radio-specific variants
-- Ambiguous publisher instructions
-- Unsupported dependencies
-- Unverified package layouts
-- Hardware-specific requirements
+Depending on the package, RadioDock may:
 
-When RadioDock cannot prove that an automatic installation is safe, manual download remains available.
+- install automatically;
+- ask for confirmation;
+- provide a manual download;
+- disable automatic installation entirely.
 
-This behavior is intentional.
+This is intentional.
 
----
-
-## Package Health
-
-Lua / Package Health functionality remains experimental.
-
-EdgeTX Lua packages do not all use a single universal installation or version-tracking system, especially older manually installed scripts.
-
-Package Health should not yet be treated as a universal update checker.
+Protecting an existing radio configuration is more important than pretending every package can be installed automatically.
 
 ---
 
-## Current Version
+## RadioDock Is Not EdgeTX Companion
 
-### Bluebird RadioDock v1.4.16
+Bluebird RadioDock is designed to complement the existing EdgeTX ecosystem.
 
-Recent improvements include:
+It focuses on convenient tasks such as:
 
-- Cleaner Model Images interface
-- Removed unnecessary Cancel Downloads control
-- Improved Model Images preview spacing
-- Improved Reload Preview positioning
-- Better maximized/fullscreen Add-ons previews
-- Multi-image gallery counters
-- Single-image counter cleanup
-- Publisher-page control moved beside SD-root selection
-- Improved ImageDock search/preview timing
-- Hardened Windows GUI regression testing
+- model images;
+- add-ons;
+- themes;
+- sounds;
+- package management;
+- migration;
+- radio resources.
 
-See the **Releases** section for detailed version history.
+It is **not intended to replace EdgeTX Companion**.
 
 ---
 
@@ -264,35 +303,34 @@ See the **Releases** section for detailed version history.
 
 RadioDock is built around a few simple ideas:
 
-- Keep the operator in control
-- Do not guess about radio files
-- Prefer manual behavior when automatic behavior is uncertain
-- Keep the application portable
-- Avoid modifying unrelated SD-card files
-- Make repetitive EdgeTX tasks easier
-- Preserve working functionality while the project evolves
+- keep the operator in control;
+- make common EdgeTX tasks easier;
+- use official publisher sources whenever possible;
+- protect existing radio files;
+- fail safely when a package is ambiguous;
+- keep the program portable;
+- improve compatibility without hiding what the application is doing.
 
 ---
 
-## Backup Your Radio
+## Feedback & Issues
 
-Before making significant changes to an EdgeTX SD card, keep a backup.
+If RadioDock behaves unexpectedly, please include as much information as possible when reporting the problem.
 
-RadioDock includes safety checks for supported operations, but a current backup of your SD card is always recommended.
+For ImageDock problems, include:
 
----
+`Bluebird_RadioDock_Data/ImageDock_Diagnostic.log`
 
-## Disclaimer
+when available.
 
-Bluebird RadioDock is an independent community project.
+GitHub:
 
-It is not affiliated with or endorsed by EdgeTX, RadioMaster, HelloRadioSky, model-image providers, Lua developers, or other referenced manufacturers and projects.
-
-EdgeTX, manufacturer names, logos, software, artwork, add-ons, and other referenced properties remain the property of their respective owners.
+**https://github.com/Redvsbluecom/Bluebird_Radio_Dock**
 
 ---
 
-<p align="center">
-  <strong>Bluebird RadioDock</strong><br>
-  Built for the EdgeTX community.
-</p>
+## License
+
+See the repository license and individual third-party project licenses for applicable terms.
+
+Bluebird RadioDock does not claim ownership of EdgeTX, publisher add-ons, themes, sounds, aircraft images, or third-party projects listed through the application.
