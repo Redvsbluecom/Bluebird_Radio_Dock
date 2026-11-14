@@ -1,3 +1,5 @@
+<img width="1429" height="852" alt="image" src="https://github.com/user-attachments/assets/1c0426dc-7657-4cde-9374-6c08f55e3b43" />
+
 Bluebird RadioDock
 Bluebird RadioDock is a portable Windows utility for some of the EdgeTX SD-card jobs I kept finding myself doing over and over.
 It is not intended to replace EdgeTX Companion. The goal is to make model images, themes, sounds, migration work, and finding useful EdgeTX add-ons a little easier while keeping the operator in control.
